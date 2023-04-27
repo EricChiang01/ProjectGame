@@ -1,7 +1,15 @@
 # ping pong game
 
 import turtle
-import winsound
+import RPi.GPIO as GPIO
+import time
+import threading
+#import winsound
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setup(17, GPIO.OUT)
+GPIO.setup(26, GPIO.OUT)
 
 wn = turtle.Screen()
 wn.title("Pong by Volibear")
@@ -39,8 +47,8 @@ ball.shape("square")
 ball.color("white")
 ball.penup()
 ball.goto(0, 0)
-ball.dx = 0.15
-ball.dy = 0.15
+ball.dx = 1
+ball.dy = 1
 
 # Pen
 pen = turtle.Turtle()
@@ -83,11 +91,44 @@ wn.onkeypress(paddle_a_down, "s")
 wn.onkeypress(paddle_b_up, "Up")
 wn.onkeypress(paddle_b_down, "Down")
 
+# define clean_up function
+def clean_up():
+    GPIO.cleanup()
+    led_thread.join()
+
+# define a function for the LED loop
+def led_loop():
+    while True:
+        GPIO.output(17, GPIO.HIGH)
+        time.sleep(0.1)
+        GPIO.output(17, GPIO.LOW)
+        time.sleep(0.1)
+        
+def led_blink():
+    GPIO.output(26, GPIO.HIGH)
+    time.sleep(0.01)
+    GPIO.output(26, GPIO.LOW)
+    time.sleep(0.01)
+
+# create a new thread for the LED loop and start it
+led_thread = threading.Thread(target=led_loop)
+led_thread.start()
+
+def exit_game():
+    clean_up()
+    wn.bye()
+
+wn.onkeypress(clean_up, "Escape")
+wn.onkeypress(exit_game, "Escape")
+
+def clean_up():
+    GPIO.cleanup()
+    led_thread.join()
 
 # Main game loop
 while True:
     wn.update()
-
+    
     # Move the ball
     ball.setx(ball.xcor() + ball.dx)
     ball.sety(ball.ycor() + ball.dy)
@@ -96,12 +137,14 @@ while True:
     if ball.ycor() > 290:
         ball.sety(290)
         ball.dy *= -1
-        winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
+        led_blink()
+        #winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
 
     if ball.ycor() < -290:
         ball.sety(-290)
         ball.dy *= -1
-        winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
+        led_blink()
+        #winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
 
     if ball.xcor() > 400:
         ball.goto(0, 0)
@@ -109,7 +152,7 @@ while True:
         score_a += 1
         pen.clear()
         pen.write("Volibear: {} Riven: {}".format(score_a, score_b), align="center", font=("Courier", 24, "normal"))
-        winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
+        #winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
 
     if ball.xcor() < -400:
         ball.goto(0, 0)
@@ -117,7 +160,7 @@ while True:
         score_b += 1
         pen.clear()
         pen.write("Volibear: {} Riven B: {}".format(score_a, score_b), align="center", font=("Courier", 24, "normal"))
-        winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
+        #winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
 
     if paddle_A.ycor() > 270:
         paddle_A.sety(270)
@@ -135,11 +178,15 @@ while True:
     if (ball.xcor() > 340 and ball.xcor() < 350) and (ball.ycor() < paddle_B.ycor() + 50 and ball.ycor() > paddle_B.ycor() - 50):
         ball.setx(340)
         ball.dx *= -1
-        winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
+        led_blink()
+        #winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
 
     if (ball.xcor() < -340 and ball.xcor() > -350) and (ball.ycor() < paddle_A.ycor() + 50 and ball.ycor() > paddle_A.ycor() - 50):
         ball.setx(-340)
         ball.dx *= -1
-        winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
+        led_blink()
+        #winsound.PlaySound("sectionpass.wav", winsound.SND_ASYNC)
+
+wn.mainloop()
 
 
