@@ -6,11 +6,13 @@ import time
 import threading
 #import winsound
 
+# Setting up GPIO pins
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.setup(17, GPIO.OUT)
 GPIO.setup(26, GPIO.OUT)
 
+# Setting up the game screen
 wn = turtle.Screen()
 wn.title("Pong by Volibear")
 wn.bgcolor("black")
